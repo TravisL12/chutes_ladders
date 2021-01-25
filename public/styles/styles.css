@@ -1,0 +1,24 @@
+body {
+  margin: 0; }
+
+ul li {
+  padding: 0; }
+
+.container {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh; }
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(10, 50px);
+  grid-auto-rows: 50px;
+  background: black;
+  border: 1px solid black;
+  gap: 1px; }
+  .board .tile:nth-child(even) {
+    background: pink; }
+  .board .tile:nth-child(odd) {
+    background: white; }
