@@ -37,12 +37,21 @@ ul li {
   background: lightblue;
 }
 
-.board .player::after {
-  content: '';
-  display: block;
-  height: 15px;
+.player {
   width: 15px;
-  border-radius: 100%;
-  border: 1px solid;
+  height: 15px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.player-1 {
+  background: gold;
+}
+.player-2 {
+  background: lightblue;
+}
+.player-3 {
   background: red;
+}
+.player-4 {
+  background: lightgreen;
 }
