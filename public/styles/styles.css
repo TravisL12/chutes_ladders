@@ -1,15 +1,22 @@
 body {
-  margin: 0; }
+  margin: 0;
+}
 
 ul li {
-  padding: 0; }
+  padding: 0;
+}
 
 .container {
   display: flex;
   justify-content: center;
   flex-direction: column;
   align-items: center;
-  height: 100vh; }
+  height: 100vh;
+}
+
+.controls {
+  display: flex;
+}
 
 .board {
   display: grid;
@@ -17,8 +24,25 @@ ul li {
   grid-auto-rows: 50px;
   background: black;
   border: 1px solid black;
-  gap: 1px; }
-  .board .tile:nth-child(even) {
-    background: pink; }
-  .board .tile:nth-child(odd) {
-    background: white; }
+  gap: 1px;
+}
+.board .tile {
+  padding: 5px;
+  background: white;
+}
+.board .tile.chute {
+  background: pink;
+}
+.board .tile.ladder {
+  background: lightblue;
+}
+
+.board .player::after {
+  content: '';
+  display: block;
+  height: 15px;
+  width: 15px;
+  border-radius: 100%;
+  border: 1px solid;
+  background: red;
+}
