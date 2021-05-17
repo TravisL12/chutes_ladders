@@ -1,4 +1,6 @@
-const ladders = {
+const TOTAL_TILES = 100;
+
+const LADDERS = {
   1: 38,
   4: 14,
   9: 31,
@@ -10,7 +12,7 @@ const ladders = {
   71: 91,
 };
 
-const chutes = {
+const CHUTES = {
   98: 78,
   95: 75,
   93: 73,
@@ -26,22 +28,23 @@ const chutes = {
 function spinSpinner() {
   return Math.floor(Math.random() * 6) + 1;
 }
-
+function createElement({ tag, classList }) {
+  const element = document.createElement(tag || 'div');
+  element.classList = classList;
+  return element;
+}
 class Tile {
   constructor(i) {
-    this.el = document.createElement('div');
-    this.el.innerHTML = `
-    <span>${i}</span>
-      <div class="players"></div>
-    `;
-    this.el.classList = 'tile';
+    this.el = createElement({ classList: 'tile' });
+    this.el.innerHTML = `<span>${i}</span>`;
+    this.playersEl = createElement({ classList: 'players' });
+    this.el.appendChild(this.playersEl);
     this.players = [];
-    this.playersEl = this.el.querySelector('.players');
     this.el.id = `tile-${i}`;
-    if (ladders[i]) {
+    if (LADDERS[i]) {
       this.el.classList.add('ladder');
     }
-    if (chutes[i]) {
+    if (CHUTES[i]) {
       this.el.classList.add('chute');
     }
   }
@@ -69,9 +72,9 @@ class Game {
     this.spinnerButton.addEventListener('click', this.takeTurn);
   }
 
-  buildTiles = (count = 100) => {
+  buildTiles = () => {
     const tiles = [];
-    for (let i = count; i > 0; i--) {
+    for (let i = TOTAL_TILES; i > 0; i--) {
       const tile = new Tile(i);
       tiles.push(tile);
       this.board.appendChild(tile.el);
@@ -80,16 +83,16 @@ class Game {
   };
 
   updateTile = () => {
-    if (this.players[this.currentPlayerIdx] >= 100) {
+    if (this.players[this.currentPlayerIdx] >= TOTAL_TILES) {
       alert(`game over, player ${this.currentPlayerIdx + 1} wins!`);
-      this.tiles[100]?.updatePlayers(this.currentPlayerIdx);
+      this.tiles[TOTAL_TILES]?.updatePlayers(this.currentPlayerIdx);
       this.gameOver = true;
       return;
     }
 
-    this.tiles[100 - this.players[this.currentPlayerIdx]]?.updatePlayers(
-      this.currentPlayerIdx
-    );
+    this.tiles[
+      TOTAL_TILES - this.players[this.currentPlayerIdx]
+    ]?.updatePlayers(this.currentPlayerIdx);
   };
 
   getNextPlayer = () => {
@@ -97,8 +100,8 @@ class Game {
   };
 
   isChuteOrLadder = () => {
-    const chute = chutes[this.players[this.currentPlayerIdx]];
-    const ladder = ladders[this.players[this.currentPlayerIdx]];
+    const chute = CHUTES[this.players[this.currentPlayerIdx]];
+    const ladder = LADDERS[this.players[this.currentPlayerIdx]];
 
     if (chute) {
       this.players[this.currentPlayerIdx] = chute;
@@ -106,7 +109,6 @@ class Game {
     if (ladder) {
       this.players[this.currentPlayerIdx] = ladder;
     }
-    return;
   };
 
   takeTurn = () => {
@@ -125,4 +127,13 @@ class Game {
   };
 }
 
-new Game();
+const game = new Game();
+
+let turnInterval;
+turnInterval = setInterval(() => {
+  if (!game.gameOver) {
+    game.takeTurn();
+  } else {
+    clearInterval(turnInterval);
+  }
+}, 100);
