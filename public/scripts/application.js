@@ -36,7 +36,7 @@ function createElement({ tag, classList }) {
 class Tile {
   constructor(i) {
     this.el = createElement({ classList: 'tile' });
-    this.el.innerHTML = `<span>${i}</span>`;
+    this.el.innerHTML = `<div class="tile-number">${i}</div>`;
     this.playersEl = createElement({ classList: 'players' });
     this.el.appendChild(this.playersEl);
     this.players = [];
@@ -54,7 +54,7 @@ class Tile {
     this.players[number] = !this.players[number];
     this.playersEl.innerHTML = this.players
       .map((hasPlayer, i) =>
-        hasPlayer ? `<div class="player player-${i + 1}"></div>` : ''
+        hasPlayer ? `<div class="player player-${i + 1}">${i + 1}</div>` : ''
       )
       .join('');
   };
@@ -64,7 +64,7 @@ class Game {
   constructor() {
     this.board = document.querySelector('.board');
     this.players = [0, 0, 0, 0];
-    this.currentPlayerIdx = 0;
+    this.currentPlayerIdx = -1;
     this.tiles = this.buildTiles();
 
     this.spinResult = document.getElementById('spin-result');
@@ -84,19 +84,15 @@ class Game {
 
   updateTile = () => {
     if (this.players[this.currentPlayerIdx] >= TOTAL_TILES) {
-      alert(`game over, player ${this.currentPlayerIdx + 1} wins!`);
-      this.tiles[TOTAL_TILES]?.updatePlayers(this.currentPlayerIdx);
+      this.tiles[0]?.updatePlayers(this.currentPlayerIdx);
       this.gameOver = true;
+      alert(`game over, player ${this.currentPlayerIdx + 1} wins!`);
       return;
     }
 
     this.tiles[
       TOTAL_TILES - this.players[this.currentPlayerIdx]
     ]?.updatePlayers(this.currentPlayerIdx);
-  };
-
-  getNextPlayer = () => {
-    this.currentPlayerIdx = (this.currentPlayerIdx + 1) % this.players.length;
   };
 
   isChuteOrLadder = () => {
@@ -117,13 +113,13 @@ class Game {
       return;
     }
 
+    this.currentPlayerIdx = (this.currentPlayerIdx + 1) % this.players.length;
     const spinValue = spinSpinner();
     this.spinResult.textContent = spinValue;
     this.updateTile(); // deactivate current square
     this.players[this.currentPlayerIdx] += spinValue;
     this.isChuteOrLadder();
-    this.updateTile(); // activate new square
-    this.getNextPlayer();
+    this.updateTile(); // activate new squares
   };
 }
 
