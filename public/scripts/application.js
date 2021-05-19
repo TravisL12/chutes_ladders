@@ -40,6 +40,7 @@ class Tile {
     this.playersEl = createElement({ classList: 'players' });
     this.el.appendChild(this.playersEl);
     this.players = [];
+    this.id = i;
     this.el.id = `tile-${i}`;
     if (LADDERS[i]) {
       this.el.classList.add('ladder');
@@ -86,13 +87,12 @@ class Game {
     if (this.players[this.currentPlayerIdx] >= TOTAL_TILES) {
       this.tiles[0]?.updatePlayers(this.currentPlayerIdx);
       this.gameOver = true;
-      alert(`game over, player ${this.currentPlayerIdx + 1} wins!`);
-      return;
+    } else {
+      const tile = this.tiles.find(
+        (t) => t.id === this.players[this.currentPlayerIdx]
+      );
+      tile?.updatePlayers(this.currentPlayerIdx);
     }
-
-    this.tiles[
-      TOTAL_TILES - this.players[this.currentPlayerIdx]
-    ]?.updatePlayers(this.currentPlayerIdx);
   };
 
   isChuteOrLadder = () => {
@@ -110,16 +110,15 @@ class Game {
   takeTurn = () => {
     if (this.gameOver) {
       alert(`game over, player ${this.currentPlayerIdx + 1} wins!`);
-      return;
+    } else {
+      this.currentPlayerIdx = (this.currentPlayerIdx + 1) % this.players.length;
+      const spinValue = spinSpinner();
+      this.spinResult.textContent = spinValue;
+      this.updateTile(); // deactivate current square
+      this.players[this.currentPlayerIdx] += spinValue;
+      this.isChuteOrLadder();
+      this.updateTile(); // activate new squares
     }
-
-    this.currentPlayerIdx = (this.currentPlayerIdx + 1) % this.players.length;
-    const spinValue = spinSpinner();
-    this.spinResult.textContent = spinValue;
-    this.updateTile(); // deactivate current square
-    this.players[this.currentPlayerIdx] += spinValue;
-    this.isChuteOrLadder();
-    this.updateTile(); // activate new squares
   };
 }
 
@@ -131,5 +130,6 @@ turnInterval = setInterval(() => {
     game.takeTurn();
   } else {
     clearInterval(turnInterval);
+    game.takeTurn(); // shows gameover
   }
 }, 100);
