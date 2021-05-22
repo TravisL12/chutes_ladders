@@ -101,6 +101,7 @@ class Game {
     this.board.innerHTML = '';
     this.gameOver = false;
     this.movesCount = 0;
+    winnerEl.textContent = '';
     this.tiles = this.buildTiles();
   };
 
@@ -134,10 +135,16 @@ class Game {
     }">Player ${
       this.currentPlayerIdx + 1
     }</span>: Spun ${spinValue}: ${chuteLadderMsg} to ${
-      this.players[this.currentPlayerIdx]
+      this.players[this.currentPlayerIdx] > 99
+        ? 100
+        : this.players[this.currentPlayerIdx]
     }</span>`;
 
     this.history.appendChild(historyLog);
+    if (this.movesCount % 4 === 0) {
+      const br = createElement({ tag: 'br' });
+      this.history.appendChild(br);
+    }
     this.history.scrollTo(0, this.history.scrollHeight);
   };
 
@@ -169,7 +176,9 @@ class Game {
 
   takeTurn = () => {
     if (this.gameOver) {
-      alert(`game over, player ${this.currentPlayerIdx + 1} wins!`);
+      winnerEl.innerHTML = `<span><span class="player-${
+        this.currentPlayerIdx + 1
+      }">Player ${this.currentPlayerIdx + 1}</span> Wins!</span>`;
     } else {
       this.currentPlayerIdx = (this.currentPlayerIdx + 1) % this.players.length;
       const spinValue = spinSpinner();
@@ -183,12 +192,12 @@ class Game {
   };
 }
 
-const game = new Game();
-
 let turnInterval;
 const AUTO_PLAY_INTERVAL = 125;
+const winnerEl = document.getElementById('winner');
 const autoPlayBtn = document.getElementById('auto-play');
 const reset = document.getElementById('reset');
+const game = new Game();
 
 const resetInterval = () => {
   clearInterval(turnInterval);
