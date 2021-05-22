@@ -1,5 +1,18 @@
 const TOTAL_TILES = 100;
 
+const tiles = [
+  [100, 99, 98, 97, 96, 95, 94, 93, 92, 91],
+  [90, 89, 88, 87, 86, 85, 84, 83, 82, 81].reverse(),
+  [80, 79, 78, 77, 76, 75, 74, 73, 72, 71],
+  [70, 69, 68, 67, 66, 65, 64, 63, 62, 61].reverse(),
+  [60, 59, 58, 57, 56, 55, 54, 53, 52, 51],
+  [50, 49, 48, 47, 46, 45, 44, 43, 42, 41].reverse(),
+  [40, 39, 38, 37, 36, 35, 34, 33, 32, 31],
+  [30, 29, 28, 27, 26, 25, 24, 23, 22, 21].reverse(),
+  [20, 19, 18, 17, 16, 15, 14, 13, 12, 11],
+  [10, 9, 8, 7, 6, 5, 4, 3, 2, 1].reverse(),
+];
+
 const LADDERS = {
   1: 38,
   4: 14,
@@ -28,7 +41,7 @@ const CHUTES = {
 function spinSpinner() {
   return Math.floor(Math.random() * 6) + 1;
 }
-function createElement({ tag, classList }) {
+function createElement({ tag, classList } = {}) {
   const element = document.createElement(tag || 'div');
   element.classList = classList;
   return element;
@@ -44,9 +57,19 @@ class Tile {
     this.el.id = `tile-${i}`;
     if (LADDERS[i]) {
       this.el.classList.add('ladder');
+      this.el.classList.add('start');
+    }
+    if (Object.values(LADDERS).includes(i)) {
+      this.el.classList.add('ladder');
+      this.el.classList.add('end');
     }
     if (CHUTES[i]) {
       this.el.classList.add('chute');
+      this.el.classList.add('start');
+    }
+    if (Object.values(CHUTES).includes(i)) {
+      this.el.classList.add('chute');
+      this.el.classList.add('end');
     }
   }
 
@@ -64,23 +87,29 @@ class Tile {
 class Game {
   constructor() {
     this.board = document.querySelector('.board');
-    this.players = [0, 0, 0, 0];
-    this.currentPlayerIdx = -1;
-    this.tiles = this.buildTiles();
-
     this.spinResult = document.getElementById('spin-result');
+    this.history = document.querySelector('#history .log');
     this.spinnerButton = document.getElementById('spin');
     this.spinnerButton.addEventListener('click', this.takeTurn);
+    this.reset();
   }
 
+  reset = () => {
+    this.currentPlayerIdx = -1;
+    this.players = [0, 0, 0, 0];
+    this.history.innerHTML = '';
+    this.board.innerHTML = '';
+    this.gameOver = false;
+    this.movesCount = 0;
+    this.tiles = this.buildTiles();
+  };
+
   buildTiles = () => {
-    const tiles = [];
-    for (let i = TOTAL_TILES; i > 0; i--) {
+    return tiles.flat().map((i) => {
       const tile = new Tile(i);
-      tiles.push(tile);
       this.board.appendChild(tile.el);
-    }
-    return tiles;
+      return tile;
+    });
   };
 
   updateTile = () => {
@@ -95,15 +124,46 @@ class Game {
     }
   };
 
+  updateHistory = (spinValue, hitChuteLadder) => {
+    this.movesCount++;
+    const chuteLadderMsg = hitChuteLadder ? `${hitChuteLadder}` : 'Moved';
+
+    const historyLog = createElement({ classList: 'log-item' });
+    historyLog.innerHTML = `<span>${this.movesCount}. <span class="player-${
+      this.currentPlayerIdx + 1
+    }">Player ${
+      this.currentPlayerIdx + 1
+    }</span>: Spun ${spinValue}: ${chuteLadderMsg} to ${
+      this.players[this.currentPlayerIdx]
+    }</span>`;
+
+    this.history.appendChild(historyLog);
+    this.history.scrollTo(0, this.history.scrollHeight);
+  };
+
+  toggleChuteLadder = (val, type) => {
+    const tile = this.tiles.find((t) => t.id === val);
+    tile.el.querySelector('.tile-number').classList.add(`select-${type}`);
+    setTimeout(() => {
+      tile.el.querySelector('.tile-number').classList.remove(`select-${type}`);
+    }, 750);
+  };
+
   isChuteOrLadder = () => {
     const chute = CHUTES[this.players[this.currentPlayerIdx]];
     const ladder = LADDERS[this.players[this.currentPlayerIdx]];
 
     if (chute) {
+      this.toggleChuteLadder(chute, 'chute');
+      this.toggleChuteLadder(this.players[this.currentPlayerIdx], 'chute');
       this.players[this.currentPlayerIdx] = chute;
+      return 'Chute';
     }
     if (ladder) {
+      this.toggleChuteLadder(ladder, 'ladder');
+      this.toggleChuteLadder(this.players[this.currentPlayerIdx], 'ladder');
       this.players[this.currentPlayerIdx] = ladder;
+      return 'Ladder';
     }
   };
 
@@ -116,7 +176,8 @@ class Game {
       this.spinResult.textContent = spinValue;
       this.updateTile(); // deactivate current square
       this.players[this.currentPlayerIdx] += spinValue;
-      this.isChuteOrLadder();
+      const hitChuteLadder = this.isChuteOrLadder();
+      this.updateHistory(spinValue, hitChuteLadder);
       this.updateTile(); // activate new squares
     }
   };
@@ -125,11 +186,32 @@ class Game {
 const game = new Game();
 
 let turnInterval;
-turnInterval = setInterval(() => {
-  if (!game.gameOver) {
-    game.takeTurn();
+const AUTO_PLAY_INTERVAL = 125;
+const autoPlayBtn = document.getElementById('auto-play');
+const reset = document.getElementById('reset');
+
+const resetInterval = () => {
+  clearInterval(turnInterval);
+  turnInterval = null;
+  autoPlayBtn.textContent = 'Start Autoplay';
+};
+reset.addEventListener('click', () => {
+  resetInterval();
+  game.reset();
+});
+
+autoPlayBtn.addEventListener('click', () => {
+  if (turnInterval) {
+    resetInterval();
   } else {
-    clearInterval(turnInterval);
-    game.takeTurn(); // shows gameover
+    autoPlayBtn.textContent = 'Stop Autoplay';
+    turnInterval = setInterval(() => {
+      if (!game.gameOver) {
+        game.takeTurn();
+      } else {
+        clearInterval(turnInterval);
+        game.takeTurn(); // shows gameover
+      }
+    }, AUTO_PLAY_INTERVAL);
   }
-}, 100);
+});

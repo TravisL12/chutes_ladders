@@ -7,10 +7,21 @@
   </head>
   <body>
     <div class="container">
-      <div class="board"></div>
-      <div class="controls">
-        <div><button id="spin">Spin</button></div>
-        <p id="spin-result"></p>
+      <div class="board-container">
+        <div class="controls">
+          <div>
+            <div>
+              <button id="spin">Spin <span id="spin-result"></span></button>
+            </div>
+            <div><button id="auto-play">Start Autoplay</button></div>
+          </div>
+          <div><button id="reset">Reset</button></div>
+        </div>
+        <div class="board"></div>
+      </div>
+      <div id="history">
+        <h2>Moves</h2>
+        <div class="log"></div>
       </div>
     </div>
   </body>
